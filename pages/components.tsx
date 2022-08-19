@@ -1,6 +1,6 @@
 import { ReactNode, SyntheticEvent, useState } from 'react'
 import Head from 'next/head'
-import { Box, Button, Tab, Tabs, Typography } from '@mui/material'
+import { Box, Button, Container, Tab, Tabs, Typography } from '@mui/material'
 import { TreeView, TreeItem } from '@mui/lab'
 import { Info, QuestionAnswer, ExpandMore, ChevronRight } from '@mui/icons-material'
 import { useAlert } from 'hooks/AlertHook'
@@ -32,9 +32,9 @@ const TabPanel = (props: ITabPanelProps) => {
       {...other}
     >
       {value === index && (
-        <Box sx={{ p: 3 }}>
-          <Typography>{children}</Typography>
-        </Box>
+        <Container>
+          <Box sx={{ p: 3 }}>{children}</Box>
+        </Container>
       )}
     </div>
   )
@@ -142,7 +142,7 @@ const Components = () => {
           <Tab label="Item Three" {...a11yProps(2)} />
         </Tabs>
         <TabPanel value={tabNum} index={0}>
-          <h1>Dialog</h1>
+          <h2>Dialog</h2>
           <Box>
             <Button
               sx={{ mr: 1 }}
@@ -170,7 +170,7 @@ const Components = () => {
           </Box>
         </TabPanel>
         <TabPanel value={tabNum} index={1}>
-          <h1>Tree View</h1>
+          <h2>Tree View</h2>
           <TreeView
             aria-label="file system navigator"
             defaultCollapseIcon={<ExpandMore />}
