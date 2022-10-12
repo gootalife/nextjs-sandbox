@@ -1,36 +1,35 @@
-import { ReactNode, SyntheticEvent, useState } from 'react'
+import { ReactNode, Suspense, SyntheticEvent, useState } from 'react'
 import Head from 'next/head'
-import { Box, Button, Container, Tab, Tabs, Typography } from '@mui/material'
+import { Box, Button, CircularProgress, Container, List, ListItem, ListItemText, Tab, Tabs } from '@mui/material'
 import { TreeView, TreeItem } from '@mui/lab'
 import { Info, QuestionAnswer, ExpandMore, ChevronRight } from '@mui/icons-material'
 import { useAlert } from 'hooks/AlertHook'
 import { useConfirm } from 'hooks/ConfirmHook'
+import { useData } from 'hooks/FetchData'
 
-interface ITabPanelProps {
+interface TabPanelProps {
   children?: ReactNode
   index: number
   value: number
 }
 
-interface ITreeViewNode<T> {
+interface NodeTreeView<T> {
   id: string
   text: string
   obj?: T
-  parent?: ITreeViewNode<T>
-  childs: ITreeViewNode<T>[]
+  parent?: NodeTreeView<T>
+  childs: NodeTreeView<T>[]
 }
 
-const TabPanel = (props: ITabPanelProps) => {
+interface NodeTreeViewProps<T> {
+  nodes: NodeTreeView<T>[]
+}
+
+const TabPanel = (props: TabPanelProps) => {
   const { children, value, index, ...other } = props
 
   return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`tabpanel-${index}`}
-      aria-labelledby={`tab-${index}`}
-      {...other}
-    >
+    <div role="tabpanel" hidden={value !== index} id={`tabpanel-${index}`} aria-labelledby={`tab-${index}`} {...other}>
       {value === index && (
         <Container>
           <Box sx={{ p: 3 }}>{children}</Box>
@@ -47,12 +46,23 @@ const a11yProps = (index: number) => {
   }
 }
 
+const sleep = (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+const fetchData = async () => {
+  await sleep(5000)
+  return ['a', 'b', 'c']
+}
+
 const Components = () => {
   const [tabNum, setTabNum] = useState(0)
   const [openAlertDialog, renderAlertDialog] = useAlert()
   const [openConfirmDialog, renderConfirmDialog] = useConfirm()
-  const [confirmAnswer, setConfirmAnswer] = useState<boolean>()
-  const nodes: ITreeViewNode<string>[] = [
+  const [confirmAnswer, setConfirmAnswer] = useState<boolean>(false)
+  const [data, setData] = useState<string[] | undefined>(undefined)
+
+  const nodes: NodeTreeView<string>[] = [
     {
       id: 'obj1',
       text: 'obj1',
@@ -110,15 +120,35 @@ const Components = () => {
   }
 
   // 再帰でtreeを描画
-  const renderTreeViewFromNodes = <T,>(nodes: ITreeViewNode<T>[]) => (
-    <>
-      {nodes.map((node) => (
-        <TreeItem nodeId={node.id} label={node.text} key={node.id}>
-          {node.childs.length > 0 && <>{renderTreeViewFromNodes(node.childs)}</>}
-        </TreeItem>
-      ))}
-    </>
-  )
+  const TreeViewFromNodes = <T,>(props: NodeTreeViewProps<T>) => {
+    const { nodes } = props
+
+    return (
+      <>
+        {nodes.map((node) => (
+          <TreeItem nodeId={node.id} label={node.text} key={node.id}>
+            {node.childs.length > 0 && <TreeViewFromNodes nodes={node.childs} />}
+          </TreeItem>
+        ))}
+      </>
+    )
+  }
+
+  const HeavyList = () => {
+    const list = useData<string[] | undefined>(
+      data,
+      fetchData().then((d) => setData(d))
+    )
+    return (
+      <List dense>
+        {list?.map((item, index) => (
+          <ListItem key={index}>
+            <ListItemText primary={item} />
+          </ListItem>
+        ))}
+      </List>
+    )
+  }
 
   return (
     <>
@@ -139,7 +169,7 @@ const Components = () => {
         >
           <Tab label="Dialog" {...a11yProps(0)} />
           <Tab label="Tree View" {...a11yProps(1)} />
-          <Tab label="Item Three" {...a11yProps(2)} />
+          <Tab label="Heavy Process" {...a11yProps(2)} />
         </Tabs>
         <TabPanel value={tabNum} index={0}>
           <h2>Dialog</h2>
@@ -177,11 +207,25 @@ const Components = () => {
             defaultExpandIcon={<ChevronRight />}
             sx={{ height: 240, flexGrow: 1, maxWidth: 400, overflowY: 'auto' }}
           >
-            {renderTreeViewFromNodes(nodes)}
+            <TreeViewFromNodes nodes={nodes} />
           </TreeView>
         </TabPanel>
         <TabPanel value={tabNum} index={2}>
-          Item Three
+          <h2>Heavy Process</h2>
+          <Box>
+            <Button
+              variant="contained"
+              sx={{ mb: 2 }}
+              onClick={() => {
+                setData(undefined)
+              }}
+            >
+              Reset
+            </Button>
+          </Box>
+          <Suspense fallback={<CircularProgress color="inherit" />}>
+            <HeavyList />
+          </Suspense>
         </TabPanel>
       </Box>
       {renderAlertDialog()}
