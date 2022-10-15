@@ -15,7 +15,7 @@ interface TabPanelProps {
 
 interface NodeTreeView<T> {
   id: string
-  text: string
+  label: string
   obj?: T
   parent?: NodeTreeView<T>
   childs: NodeTreeView<T>[]
@@ -65,47 +65,47 @@ const Components = () => {
   const nodes: NodeTreeView<string>[] = [
     {
       id: 'obj1',
-      text: 'obj1',
+      label: 'obj1',
       childs: [
         {
           id: 'obj1-1',
-          text: 'obj1-1',
+          label: 'obj1-1',
           childs: [
             {
               id: 'obj1-1-1',
-              text: 'obj1-1-1',
+              label: 'obj1-1-1',
               childs: []
             },
             {
               id: 'obj1-1-2',
-              text: 'obj1-1-2',
+              label: 'obj1-1-2',
               childs: []
             }
           ]
         },
         {
           id: 'obj1-2',
-          text: 'obj1-2',
+          label: 'obj1-2',
           childs: []
         }
       ]
     },
     {
       id: 'obj2',
-      text: 'obj2',
+      label: 'obj2',
       childs: [
         {
           id: 'obj2-1',
-          text: 'obj2-1',
+          label: 'obj2-1',
           childs: []
         },
         {
           id: 'obj2-2',
-          text: 'obj2-2',
+          label: 'obj2-2',
           childs: [
             {
               id: 'obj2-2-1',
-              text: 'obj2-2-1',
+              label: 'obj2-2-1',
               childs: []
             }
           ]
@@ -126,7 +126,7 @@ const Components = () => {
     return (
       <>
         {nodes.map((node) => (
-          <TreeItem nodeId={node.id} label={node.text} key={node.id}>
+          <TreeItem nodeId={node.id} label={node.label} key={node.id}>
             {node.childs.length > 0 && <TreeViewFromNodes nodes={node.childs} />}
           </TreeItem>
         ))}
